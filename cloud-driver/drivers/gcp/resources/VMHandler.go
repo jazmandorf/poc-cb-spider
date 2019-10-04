@@ -25,7 +25,6 @@ import (
 
 type GCPVMHandler struct {
 	Region idrv.RegionInfo
-	//Zone idrv.ZoneInf
 	Ctx    context.Context
 	Client *compute.Service
 	Credential idrv.CredentialInfo
