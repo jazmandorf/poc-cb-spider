@@ -58,7 +58,11 @@ type InstanceInfo struct {
 	instnaceName string
 }
 
-func createInstance(service *compute.Service, conf Config, zone string, vmname string) {
+type vmInstanceInfo struct {
+	VMId string
+}
+
+func createInstance(service *compute.Service, conf Config, zone string, vmname string, diskname string) {
 
 	projectID := conf.ProjectID
 
@@ -68,8 +72,8 @@ func createInstance(service *compute.Service, conf Config, zone string, vmname s
 	instanceName := vmname
 
 	// Show the current images that are available.
-	res, err := service.Images.List(projectID).Do()
-	log.Printf("Got compute.Images.List, err: %#v, %v", res, err)
+	// res, err := service.Images.List(projectID).Do()
+	// log.Printf("Got compute.Images.List, err: %#v, %v", res, err)
 
 	instance := &compute.Instance{
 		Name:        instanceName,
@@ -81,7 +85,7 @@ func createInstance(service *compute.Service, conf Config, zone string, vmname s
 				Boot:       true,
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskName:    "my-csc",
+					DiskName:    diskname,
 					SourceImage: imageURL,
 				},
 			},
@@ -111,8 +115,9 @@ func createInstance(service *compute.Service, conf Config, zone string, vmname s
 	op, err := service.Instances.Insert(projectID, zone, instance).Do()
 	js, err := op.MarshalJSON()
 	if err != nil {
-		fmt.Println("Insert vm to marshal Json : ", string(js))
+		log.Fatal(err)
 	}
+	fmt.Println("Insert vm to marshal Json : ", string(js))
 	log.Printf("Got compute.Operation, err: %#v, %v", op, err)
 	etag := op.Header.Get("Etag")
 	log.Printf("Etag=%v", etag)
@@ -313,7 +318,8 @@ func main() {
 	credentialFilePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	config, _ := readFileConfig(credentialFilePath)
 	zone := "asia-northeast1-b"
-	instanceName := "test1"
+	instanceName := "cscmcloud"
+	//diskname := "mzcsc21"
 	//region := "asia-northeast1"
 	ctx := context.Background()
 
@@ -322,7 +328,7 @@ func main() {
 	fmt.Println(reflect.TypeOf(client))
 	fmt.Println("config Project ID : ", config.ProjectID)
 
-	createInstance(client, config, zone, instanceName)
+	//createInstance(client, config, zone, instanceName, diskname)
 	instance := getInstance(ctx, client, zone, instanceName, config)
 	fmt.Println("output instance : ", instance)
 	//getInstance(ctx, client, zone, instanceName, config)
