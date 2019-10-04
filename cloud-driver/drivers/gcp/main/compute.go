@@ -58,14 +58,14 @@ type InstanceInfo struct {
 	instnaceName string
 }
 
-func createInstance(service *compute.Service, conf Config) {
+func createInstance(service *compute.Service, conf Config, zone string, vmname string) {
 
 	projectID := conf.ProjectID
 
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
 	imageURL := "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-7-wheezy-v20140606"
-	zone := "asia-northeast1-b"
-	instanceName := "cscmcloud"
+	zone = zone
+	instanceName := vmname
 
 	// Show the current images that are available.
 	res, err := service.Images.List(projectID).Do()
@@ -81,7 +81,7 @@ func createInstance(service *compute.Service, conf Config) {
 				Boot:       true,
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskName:    "my-root-pd",
+					DiskName:    "my-csc",
 					SourceImage: imageURL,
 				},
 			},
@@ -109,7 +109,10 @@ func createInstance(service *compute.Service, conf Config) {
 	}
 
 	op, err := service.Instances.Insert(projectID, zone, instance).Do()
-
+	js, err := op.MarshalJSON()
+	if err != nil {
+		fmt.Println("Insert vm to marshal Json : ", string(js))
+	}
 	log.Printf("Got compute.Operation, err: %#v, %v", op, err)
 	etag := op.Header.Get("Etag")
 	log.Printf("Etag=%v", etag)
@@ -133,7 +136,12 @@ func getInstance(ctx context.Context, service *compute.Service, zone string, ins
 	if err != nil {
 		log.Fatal(err)
 	}
-	//js, err := inst.MarshalJSON()
+	js, err := inst.MarshalJSON()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("get Instance Marshal Json : ", string(js))
 	fmt.Println("Instance status :", inst.Status)
 
 	return inst
@@ -305,7 +313,7 @@ func main() {
 	credentialFilePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	config, _ := readFileConfig(credentialFilePath)
 	zone := "asia-northeast1-b"
-	instanceName := "cscmcloud"
+	instanceName := "test1"
 	//region := "asia-northeast1"
 	ctx := context.Background()
 
@@ -314,11 +322,12 @@ func main() {
 	fmt.Println(reflect.TypeOf(client))
 	fmt.Println("config Project ID : ", config.ProjectID)
 
-	//createInstance(client, config)
+	createInstance(client, config, zone, instanceName)
 	instance := getInstance(ctx, client, zone, instanceName, config)
 	fmt.Println("output instance : ", instance)
+	//getInstance(ctx, client, zone, instanceName, config)
 	//stopVM(ctx, client, zone, instanceName, config)
-	startVM(ctx, client, zone, instanceName, config)
+	//startVM(ctx, client, zone, instanceName, config)
 	//getGlobalAddressList(ctx, client, config)
 	//getPublicIP(instance)
 	// CreatePublicIP(ctx, client, "staticip2", region, config)

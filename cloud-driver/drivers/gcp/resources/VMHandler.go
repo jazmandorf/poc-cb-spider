@@ -78,24 +78,17 @@ func (vmHandler *GCPVMHandler) StartVM(vmReqInfo irs.VMReqInfo) (irs.VMInfo, err
 		},
 	}
 	
-	op, err := vmHandler.Client.Instances(projectID, zone, instance).Do()
+	op, err := vmHandler.Client.Instances.Insert(projectID, zone, instance).Do()
 	
-	vm, err := vmHandler.Client.Instances.Get().Context(vmHandler.Ctx).Do()
+	
 	// 이게 시작하는  api Start 내부 매개변수로 projectID, zone, InstanceID
 	//vm, err := vmHandler.Client.Instances.Start(project string, zone string, instance string)
-	vm, err := vmHandler.Client.Get(vmHandler.Ctx, vmNameArr[0], vmNameArr[1], compute.InstanceView)
-	if vm.ID != nil {
-		errMsg := fmt.Sprintf("VirtualMachine with name %s already exist", vmNameArr[1])
-		createErr := errors.New(errMsg)
-		return irs.VMInfo{}, createErr
-	}
-
-	
-	vm, err = vmHandler.Client.Get(vmHandler.Ctx, vmNameArr[0], vmNameArr[1], compute.InstanceView)
+	vm, err := vmHandler.Client.Instances.Get(projectID,zone,vmName).Context(ctx).Do()
 	if err != nil {
 		panic(err)
 	}
-	vmInfo := mappingServerInfo(vm)
+
+	vmInfo := mappingServerInfo(vm) // 따로 맵핑 정보 맞춰야 함.
 
 	return vmInfo, nil
 }
