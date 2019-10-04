@@ -20,7 +20,7 @@ import (
 	irs "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces/resources"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	cblog "github.com/cloud-barista/cb-log"
 )

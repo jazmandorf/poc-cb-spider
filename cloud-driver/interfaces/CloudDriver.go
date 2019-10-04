@@ -11,7 +11,7 @@
 package interfaces
 
 import (
-	icon "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces/connect"
+	icon "../interfaces/connect"
 )
 
 type DriverCapabilityInfo struct {
@@ -37,6 +37,7 @@ type CredentialInfo struct {
 	DomainName       string // OpenStack Credential
 	ProjectID        string // OpenStack Credential
 	AuthToken        string //Cloudit Credential
+	ClientEmail      string // GCP
 }
 
 type RegionInfo struct {

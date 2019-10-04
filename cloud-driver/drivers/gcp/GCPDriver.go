@@ -12,12 +12,13 @@ package gcp
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"time"
 
-	gcpcon "github.com/cloud-barista/poc-cb-spider/cloud-driver/drivers/gcp/connect"
-	idrv "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces"
-	icon "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces/connect"
+	idrv "../../interfaces"
+	icon "../../interfaces/connect"
+	gcpcon "../gcp/connect"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -54,7 +55,7 @@ func (driver *GCPDriver) ConnectCloud(connectionInfo idrv.ConnectionInfo) (icon.
 
 	Ctx, VMClient, err := getVMClient(connectionInfo.CredentialInfo)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
 	iConn := gcpcon.GCPCloudConnection{
@@ -75,8 +76,8 @@ func (driver *GCPDriver) ConnectCloud(connectionInfo idrv.ConnectionInfo) (icon.
 func getVMClient(credential idrv.CredentialInfo) (context.Context, *compute.Service, error) {
 
 	// GCP 는  ClientSecret에
-	// JSON byte읽은 걸 string으로 변환해서 credential.ClientSecret에 넣을꺼임
-	data := []byte(credential.ClientSecret)
+	// filepath를 전달 해서 credential.ClientSecret에 넣을꺼임
+	data, err := ioutil.ReadFile(credential.ClientSecret)
 	authURL := "https://www.googleapis.com/auth/compute"
 	conf, err := google.JWTConfigFromJSON(data, authURL)
 
@@ -90,7 +91,7 @@ func getVMClient(credential idrv.CredentialInfo) (context.Context, *compute.Serv
 
 	ctx, _ := context.WithTimeout(context.Background(), 600*time.Second)
 
-	return ctx, &vmClient, nil
+	return ctx, vmClient, nil
 }
 
 var TestDriver GCPDriver

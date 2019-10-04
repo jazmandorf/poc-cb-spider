@@ -14,9 +14,9 @@ import (
 	"context"
 	"fmt"
 
-	gcprs "github.com/cloud-barista/poc-cb-spider/cloud-driver/drivers/gcp/resources"
-	idrv "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces"
-	irs "github.com/cloud-barista/poc-cb-spider/cloud-driver/interfaces/resources"
+	idrv "../../../interfaces"
+	irs "../../../interfaces/resources"
+	gcprs "../../gcp/resources"
 	compute "google.golang.org/api/compute/v1"
 )
 
@@ -29,7 +29,7 @@ type GCPCloudConnection struct {
 	PublicIPClient      *compute.Service
 	SecurityGroupClient *compute.Service
 	VNetClient          *compute.Service
-	VNicClient          *compute.Servicet
+	VNicClient          *compute.Service
 	SubnetClient        *compute.Service
 }
 
