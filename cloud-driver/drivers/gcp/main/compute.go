@@ -299,6 +299,16 @@ func ListImage(ctx context.Context, service *compute.Service, conf Config) []byt
 	projectID := conf.ProjectID
 	list, err := service.Images.List(projectID).Do()
 	log.Printf("Got compute.Images.List, err: %#v, %v", list, err)
+	req := service.Images.List(projectID)
+	if err := req.Pages(ctx, func(page *compute.ImageList) error {
+		for i, image := range page.Items {
+			// TODO: Change code below to process each `image` resource:
+			fmt.Printf("get ImagetList : %#v\n", image, i)
+		}
+		return nil
+	}); err != nil {
+		log.Fatal(err)
+	}
 
 	if err != nil {
 		log.Fatal(err)
@@ -317,8 +327,8 @@ func ListImage(ctx context.Context, service *compute.Service, conf Config) []byt
 func main() {
 	credentialFilePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	config, _ := readFileConfig(credentialFilePath)
-	zone := "asia-northeast1-b"
-	instanceName := "cscmcloud"
+	//zone := "asia-northeast1-b"
+	//instanceName := "cscmcloud"
 	//diskname := "mzcsc21"
 	//region := "asia-northeast1"
 	ctx := context.Background()
@@ -329,8 +339,8 @@ func main() {
 	fmt.Println("config Project ID : ", config.ProjectID)
 
 	//createInstance(client, config, zone, instanceName, diskname)
-	instance := getInstance(ctx, client, zone, instanceName, config)
-	fmt.Println("output instance : ", instance)
+	//instance := getInstance(ctx, client, zone, instanceName, config)
+	//fmt.Println("output instance : ", instance)
 	//getInstance(ctx, client, zone, instanceName, config)
 	//stopVM(ctx, client, zone, instanceName, config)
 	//startVM(ctx, client, zone, instanceName, config)
@@ -342,7 +352,7 @@ func main() {
 	//fmt.Println("output address : ", address)
 	//getVMlist := ListVM(ctx, client, zone, config)
 	//fmt.Println("getVMList : ", string(getVMlist))
-	//getImagelist := ListImage(ctx, client, config)
-	//fmt.Println("getVMList : ", string(getImagelist))
+	getImagelist := ListImage(ctx, client, config)
+	fmt.Println("getVMList : ", string(getImagelist))
 
 }
