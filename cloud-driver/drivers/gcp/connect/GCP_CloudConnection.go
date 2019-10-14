@@ -59,11 +59,11 @@ type GCPCloudConnection struct {
 // 	vNicHandler := gcprs.GCPVNicHandler{cloudConn.Region, cloudConn.Ctx, cloudConn.VNicClient, cloudConn.SubnetClient}
 // 	return &vNicHandler, nil
 // }
-// func (cloudConn *GCPCloudConnection) CreatePublicIPHandler() (irs.PublicIPHandler, error) {
-// 	fmt.Println("GCP Cloud Driver: called CreatePublicIPHandler()!")
-// 	publicIPHandler := gcprs.GCPPublicIPHandler{cloudConn.Region, cloudConn.Ctx, cloudConn.PublicIPClient}
-// 	return &publicIPHandler, nil
-// }
+func (cloudConn *GCPCloudConnection) CreatePublicIPHandler() (irs.PublicIPHandler, error) {
+	fmt.Println("GCP Cloud Driver: called CreatePublicIPHandler()!")
+	publicIPHandler := gcprs.GCPPublicIPHandler{cloudConn.Region, cloudConn.Ctx, cloudConn.PublicIPClient}
+	return &publicIPHandler, nil
+}
 
 func (cloudConn *GCPCloudConnection) CreateVMHandler() (irs.VMHandler, error) {
 	fmt.Println("GCP Cloud Driver: called CreateVMHandler()!")

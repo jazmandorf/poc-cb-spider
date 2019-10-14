@@ -20,7 +20,7 @@ type CloudConnection interface {
 	// CreateSecurityHandler() (irs.SecurityHandler, error)
 	// CreateKeyPairHandler() (irs.KeyPairHandler, error)
 	// CreateVNicHandler() (irs.VNicHandler, error)
-	// CreatePublicIPHandler() (irs.PublicIPHandler, error)
+	CreatePublicIPHandler() (irs.PublicIPHandler, error)
 
 	CreateVMHandler() (irs.VMHandler, error)
 
