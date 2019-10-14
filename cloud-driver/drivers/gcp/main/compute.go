@@ -330,7 +330,7 @@ func main() {
 	//zone := "asia-northeast1-b"
 	//instanceName := "cscmcloud"
 	//diskname := "mzcsc21"
-	//region := "asia-northeast1"
+	region := "asia-northeast1"
 	ctx := context.Background()
 
 	client := connect(credentialFilePath)
@@ -346,7 +346,7 @@ func main() {
 	//startVM(ctx, client, zone, instanceName, config)
 	//getGlobalAddressList(ctx, client, config)
 	//getPublicIP(instance)
-	// CreatePublicIP(ctx, client, "staticip2", region, config)
+	CreatePublicIP(ctx, client, "staticip3", region, config)
 	//name, address := ListPublicIP(ctx, client, config, region)
 	//fmt.Println("output name : ", name)
 	//fmt.Println("output address : ", address)
