@@ -2,7 +2,9 @@ package resources
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"log"
+	"strings"
 
 	idrv "../../../interfaces"
 	irs "../../../interfaces/resources"
@@ -22,23 +24,11 @@ type PublicIPInfo struct {
 	Name              string
 	Region            string // GCP
 	CreationTimestamp string // GCP
-	IpAddress         string // GCP
+	Address           string // GCP
 	NetworkTier       string // GCP : PREMIUM, STANDARD
 	AddressType       string // GCP : External, INTERNAL, UNSPECIFIED_TYPE
 	Status            string // GCP : IN_USE, RESERVED, RESERVING
-}
-
-func (publicIP *PublicIPInfo) setter(address network.PublicIPAddress) *PublicIPInfo {
-	publicIP.Id = *address.ID
-	publicIP.Name = *address.Name
-	publicIP.Location = *address.Location
-	publicIP.PublicIPAddressSku = fmt.Sprint(address.Sku.Name)
-	publicIP.PublicIPAddressVersion = fmt.Sprint(address.PublicIPAddressVersion)
-	publicIP.PublicIPAllocationMethod = fmt.Sprint(address.PublicIPAllocationMethod)
-	publicIP.IPAddress = *address.IPAddress
-	publicIP.IdleTimeoutInMinutes = *address.IdleTimeoutInMinutes
-
-	return publicIP
+	InstanceId        string // GCP : 연결된 VM
 }
 
 func (publicIpHandler *GCPPublicIPHandler) CreatePublicIP(publicIPReqInfo irs.PublicIPReqInfo) (irs.PublicIPInfo, error) {
@@ -47,16 +37,53 @@ func (publicIpHandler *GCPPublicIPHandler) CreatePublicIP(publicIPReqInfo irs.Pu
 }
 
 func (publicIpHandler *GCPPublicIPHandler) ListPublicIP() ([]*irs.PublicIPInfo, error) {
+	projectID := publicIpHandler.Credential.projectID
+	region := publicIpHandler.Region.region
 
+	list, err := publicIpHandler.Client.Addresses.List(projectID, region).Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, item := range list.Items {
+
+	}
 	return nil, nil
 }
 
 func (publicIpHandler *GCPPublicIPHandler) GetPublicIP(publicIPID string) (irs.PublicIPInfo, error) {
+	projectID := publicIpHandler.Credential.projectID
+	region := publicIpHandler.Region.region
+	name := publicIPID
+	info, err := publicIpHandler.Client.Addresses.Get(projectID, region, name).Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+	infoByte, err := info.MarshalJSON()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return irs.PublicIPInfo{}, nil
+	var publicInfo irs.PublicIPInfo
+
+	err := json.Unmarshal(infoByte, &publicInfo)
+	users := info.Users[0]
+	vmArr := strings.Split(users, "/")
+	&publicInfo.InstanceId = vmArr[len(vmArr)-1]
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return publicInfo, err
 }
 
 func (publicIpHandler *GCPPublicIPHandler) DeletePublicIP(publicIPID string) (bool, error) {
 
 	return true, nil
+}
+
+func (*GCPPublicIPHandler) mappingPublicIpInfo(infos []byte) (irs.PublicIPInfo, error) {
+	var publicInfo irs.PublicIPInfo
+	err := json.Unmarshal(infos, &publicInfo)
+
+	return publicInfo
 }

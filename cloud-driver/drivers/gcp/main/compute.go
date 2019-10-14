@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -60,6 +61,30 @@ type InstanceInfo struct {
 
 type vmInstanceInfo struct {
 	VMId string
+}
+
+type PublicIPInfo struct {
+	Name string // AWS
+	Id   string
+	// @todo
+
+	Domain                  string // AWS
+	PublicIp                string // AWS
+	PublicIpv4Pool          string // AWS
+	AllocationId            string // AWS:할당ID
+	AssociationId           string // AWS:연결ID
+	InstanceId              string // AWS:연결된 VM, GCP:연결된 VM name
+	NetworkInterfaceId      string // AWS:연결된 Nic
+	NetworkInterfaceOwnerId string // AWS
+	PrivateIpAddress        string // AWS
+
+	Region            string // GCP
+	CreationTimestamp string // GCP
+	Address           string // GCP
+	NetworkTier       string // GCP : PREMIUM, STANDARD
+	AddressType       string // GCP : External, INTERNAL, UNSPECIFIED_TYPE
+	Status            string // GCP : IN_USE, RESERVED, RESERVING
+
 }
 
 func createInstance(service *compute.Service, conf Config, zone string, vmname string, diskname string) {
@@ -131,9 +156,35 @@ func createInstance(service *compute.Service, conf Config, zone string, vmname s
 	}
 
 }
-func getPublicIP(instance *compute.Instance) {
+func getPublicIPFromInstance(instance *compute.Instance) {
 	fmt.Println("network Interface : ", instance.NetworkInterfaces[0].AccessConfigs[0].Name)
 }
+func getPublicIP(ctx context.Context, service *compute.Service, region string, publicNm string, conf Config) {
+	info, err := service.Addresses.Get(conf.ProjectID, region, publicNm).Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	infoByte, err := info.MarshalJSON()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var publicInfo PublicIPInfo
+	err = json.Unmarshal(infoByte, &publicInfo)
+	fmt.Println("publicInfo : ", publicInfo.Name)
+	users := info.Users[0]
+	vmArr := strings.Split(users, "/")
+	publicInfo.InstanceId = vmArr[len(vmArr)-1]
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("publicInfo : ", publicInfo)
+
+}
+
 func getInstance(ctx context.Context, service *compute.Service, zone string, instanceName string, conf Config) *compute.Instance {
 	/// ctx := context.Background()
 	inst, err := service.Instances.Get(conf.ProjectID, zone, instanceName).Context(ctx).Do()
@@ -214,6 +265,30 @@ func ListPublicIP(ctx context.Context, service *compute.Service, conf Config, re
 	fmt.Println("ListPublicIP[0] Name : ", list.Items[0].Name)
 	fmt.Println("ListPublicIP[0] Address : ", list.Items[0].Address)
 	//log.Printf("getGlovalAddressList, err: %#v, %v", list, err)
+	publicIPInfos := make([]PublicIPInfo, len(list.Items))
+	for index, item := range list.Items {
+		fmt.Println("index : ", index)
+		fmt.Println("item : ", item)
+		publicIPInfos[index].Name = item.Name
+		publicIPInfos[index].Id = strconv.FormatUint(item.Id, 10)
+		publicIPInfos[index].Region = item.Region
+		publicIPInfos[index].CreationTimestamp = item.CreationTimestamp
+		publicIPInfos[index].Address = item.Address
+		publicIPInfos[index].NetworkTier = item.Network
+		if user := item.Users; user != nil {
+			publicIPInfos[index].InstanceId = user[0]
+		}
+		// publicIPInfos[index].InstanceId = item.Users[0]
+		publicIPInfos[index].Status = item.Status
+
+	}
+	for _, st := range publicIPInfos {
+
+		if st.Status == "RESERVED" {
+			fmt.Println(st.Status)
+		}
+	}
+	fmt.Println("publicInfos Arr : ", publicIPInfos)
 	name := list.Items[0].Name
 	address := list.Items[0].Address
 	return name, address
@@ -345,14 +420,14 @@ func main() {
 	//stopVM(ctx, client, zone, instanceName, config)
 	//startVM(ctx, client, zone, instanceName, config)
 	//getGlobalAddressList(ctx, client, config)
-	//getPublicIP(instance)
-	CreatePublicIP(ctx, client, "staticip3", region, config)
-	//name, address := ListPublicIP(ctx, client, config, region)
-	//fmt.Println("output name : ", name)
-	//fmt.Println("output address : ", address)
+	getPublicIP(ctx, client, region, "natip", config)
+	//CreatePublicIP(ctx, client, "staticip3", region, config)
+	name, address := ListPublicIP(ctx, client, config, region)
+	fmt.Println("output name : ", name)
+	fmt.Println("output address : ", address)
 	//getVMlist := ListVM(ctx, client, zone, config)
 	//fmt.Println("getVMList : ", string(getVMlist))
-	getImagelist := ListImage(ctx, client, config)
-	fmt.Println("getVMList : ", string(getImagelist))
+	//getImagelist := ListImage(ctx, client, config)
+	//fmt.Println("getVMList : ", string(getImagelist))
 
 }

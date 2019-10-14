@@ -26,10 +26,18 @@ type PublicIPInfo struct {
 	PublicIpv4Pool          string // AWS
 	AllocationId            string // AWS:할당ID
 	AssociationId           string // AWS:연결ID
-	InstanceId              string // AWS:연결된 VM
+	InstanceId              string // AWS:연결된 VM, GCP:연결된 VM name
 	NetworkInterfaceId      string // AWS:연결된 Nic
 	NetworkInterfaceOwnerId string // AWS
 	PrivateIpAddress        string // AWS
+
+	Region            string // GCP
+	CreationTimestamp string // GCP
+	Address           string // GCP
+	NetworkTier       string // GCP : PREMIUM, STANDARD
+	AddressType       string // GCP : External, INTERNAL, UNSPECIFIED_TYPE
+	Status            string // GCP : IN_USE, RESERVED, RESERVING
+
 }
 
 type PublicIPHandler interface {
